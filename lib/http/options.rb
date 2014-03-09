@@ -5,33 +5,31 @@ require 'socket'
 module HTTP
   class Options
     # How to format the response [:object, :body, :parse_body]
-    attr_accessor :response
+    attr_reader :response
 
     # HTTP headers to include in the request
-    attr_accessor :headers
+    attr_reader :headers
 
     # Query string params to add to the url
-    attr_accessor :params
+    attr_reader :params
 
     # Form data to embed in the request
-    attr_accessor :form
+    attr_reader :form
 
     # Explicit request body of the request
-    attr_accessor :body
+    attr_reader :body
 
     # HTTP proxy to route request
-    attr_accessor :proxy
+    attr_reader :proxy
 
     # Socket classes
-    attr_accessor :socket_class, :ssl_socket_class
+    attr_reader :socket_class, :ssl_socket_class
 
     # SSL context
-    attr_accessor :ssl_context
+    attr_reader :ssl_context
 
     # Follow redirects
-    attr_accessor :follow
-
-    protected :response=, :headers=, :proxy=, :params=, :form=, :follow=
+    attr_reader :follow
 
     @default_socket_class     = TCPSocket
     @default_ssl_socket_class = OpenSSL::SSL::SSLSocket
@@ -61,43 +59,12 @@ module HTTP
       @headers['User-Agent'] ||= "RubyHTTPGem/#{HTTP::VERSION}"
     end
 
-    def with_headers(headers)
-      unless headers.respond_to?(:to_hash)
-        argument_error! "invalid headers: #{headers}"
+    %w{ headers proxy params form body follow }.each do |name|
+      class_eval <<-RUBY, __FILE__, __LINE__
+      def with_#{name}(value)
+        merge :#{name} => value
       end
-      dup do |opts|
-        opts.headers = self.headers.merge(headers.to_hash)
-      end
-    end
-
-    def with_proxy(proxy_hash)
-      dup do |opts|
-        opts.proxy = proxy_hash
-      end
-    end
-
-    def with_params(params)
-      dup do |opts|
-        opts.params = params
-      end
-    end
-
-    def with_form(form)
-      dup do |opts|
-        opts.form = form
-      end
-    end
-
-    def with_body(body)
-      dup do |opts|
-        opts.body = body
-      end
-    end
-
-    def with_follow(follow)
-      dup do |opts|
-        opts.follow = follow
-      end
+      RUBY
     end
 
     def [](option)
@@ -106,13 +73,9 @@ module HTTP
 
     def merge(other)
       h1, h2 = to_hash, other.to_hash
+
       merged = h1.merge(h2) do |k, v1, v2|
-        case k
-        when :headers
-          v1.merge(v2)
-        else
-          v2
-        end
+        (:headers == k) ?  v1.merge(v2) : v2
       end
 
       self.class.new(merged)
@@ -134,12 +97,6 @@ module HTTP
         :ssl_socket_class => ssl_socket_class,
         :ssl_context      => ssl_context
      }
-    end
-
-    def dup
-      dupped = super
-      yield(dupped) if block_given?
-      dupped
     end
 
   private
