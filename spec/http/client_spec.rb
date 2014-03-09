@@ -67,6 +67,14 @@ describe HTTP::Client do
       expect { client.get('http://example.com/') } \
         .to raise_error(HTTP::Redirector::TooManyRedirectsError)
     end
+
+    it 'properly presets Host header' do
+      client = StubbedClient.new(:follow => true).stub(
+        'http://example.com/' => redirect_response('http://www.example.com/')
+      )
+
+      expect(client.get('http://example.com/')['Host']).to eq 'www.example.com'
+    end
   end
 
   describe 'parsing params' do

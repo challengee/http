@@ -45,7 +45,6 @@ module HTTP
 
     def initialize(options = {})
       @response  = options[:response]  || :auto
-      @headers   = options[:headers]   || {}
       @proxy     = options[:proxy]     || {}
       @body      = options[:body]
       @params    = options[:params]
@@ -56,6 +55,7 @@ module HTTP
       @ssl_socket_class = options[:ssl_socket_class] || self.class.default_ssl_socket_class
       @ssl_context      = options[:ssl_context]
 
+      @headers = HTTP::Headers.from_hash(options[:headers] || {})
       @headers['User-Agent'] ||= "RubyHTTPGem/#{HTTP::VERSION}"
     end
 

@@ -12,7 +12,7 @@ describe HTTP::Response do
     end
 
     it 'provides a #headers accessor too' do
-      expect(response.headers).to eq('Content-Type' => 'text/plain')
+      expect(response.headers).to be_a HTTP::Headers
     end
 
     context 'with duplicate header keys (mixed case)' do
@@ -30,7 +30,7 @@ describe HTTP::Response do
 
     it 'normalizes header name' do
       response['set-cookie'] = 'foo=bar;'
-      expect(response.headers).to eq('Set-Cookie' => 'foo=bar;')
+      expect(response.headers.to_h).to eq('Set-Cookie' => 'foo=bar;')
     end
 
     it 'groups duplicate header values into Arrays' do
@@ -38,14 +38,14 @@ describe HTTP::Response do
       response['set-cookie'] = 'c=d;'
       response['set-cookie'] = 'e=f;'
 
-      expect(response.headers).to eq('Set-Cookie' => ['a=b;', 'c=d;', 'e=f;'])
+      expect(response.headers.to_h).to eq('Set-Cookie' => ['a=b;', 'c=d;', 'e=f;'])
     end
 
     it 'respects if additional value is Array' do
       response['set-cookie'] = 'a=b;'
       response['set-cookie'] = ['c=d;', 'e=f;']
 
-      expect(response.headers).to eq('Set-Cookie' => ['a=b;', 'c=d;', 'e=f;'])
+      expect(response.headers.to_h).to eq('Set-Cookie' => ['a=b;', 'c=d;', 'e=f;'])
     end
   end
 
